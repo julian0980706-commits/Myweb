@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>點餐表單 | 班級訂餐</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 表單專用樣式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+    
+    <style>
+        /* 表單頁專用樣式 */
+        .order-page {
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 0 0 80px;
+        }
+        
+        /* 表單頂部標題欄 */
+        .form-header-bar {
+            background: white;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .form-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1f2937;
+            text-align: center;
+            flex: 1;
+        }
+        
+        /* 主表單容器 */
+        .form-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        
+        /* 表單狀態提示 */
+        .form-status {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .form-status.closed {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+        
+        /* 表單卡片 */
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* 表單標題區 */
+        .form-title-section {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .restaurant-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .deadline {
+            color: #dc2626;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        /* 日期導航 */
+        .date-navigation {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .date-nav-title {
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date-buttons {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .date-btn {
+            min-width: 60px;
+            padding: 12px 8px;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .date-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            font-weight: 600;
+        }
+        
+        .date-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f3f4f6;
+        }
+        
+        /* 問題區塊 */
+        .question-block {
+            margin-bottom: 28px;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .required-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        
+        /* 選擇題選項 */
+        .option-item {
+            padding: 18px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .option-item:hover {
+            border-color: #9ca3af;
+            background: #f9fafb;
+        }
+        
+        .option-item.selected {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .option-content {
+            flex: 1;
+        }
+        
+        .option-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .option-price {
+            color: #059669;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .option-selector {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        
+        .option-item.selected .option-selector::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: #2563eb;
+            border-radius: 50%;
+        }
+        
+        /* 簡答題輸入 */
+        .text-input-group {
+            margin-top: 16px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 1rem;
+            color: #4b5563;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .text-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .input-hint {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+        
+        /* 提交按鈕 */
+        .submit-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .submit-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 表單狀態訊息 */
+        .form-message {
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .form-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        
+        .form-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        /* 底部導航 */
+        .form-bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+        }
+        
+        .form-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+        
+        .form-nav-item.active {
+            color: #2563eb;
+        }
+        
+        .form-nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        /* 載入動畫 */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body class="order-page">
+    <!-- 頂部標題欄 -->
+    <div class="form-header-bar">
+        <a href="index.html" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            返回
+        </a>
+        <div class="form-title">點餐表單</div>
+        <div style="width: 60px;"></div> <!-- 空元素維持平衡 -->
+    </div>
+    
+    <!-- 表單狀態提示 -->
+    <div class="form-container">
+        <div class="form-status" id="formStatus">
+            <i class="fas fa-check-circle"></i>
+            <span>此表單接受回覆中 · 今日 20:50 結單</span>
+        </div>
+        
+        <!-- 日期導航 -->
+        <div class="date-navigation">
+            <div class="date-nav-title">
+                <i class="far fa-calendar-alt"></i>
+                選擇訂餐日期
+            </div>
+            <div class="date-buttons" id="dateButtons">
+                <!-- 日期按鈕由JavaScript動態生成 -->
+            </div>
+        </div>
+        
+        <!-- 主表單卡片 -->
+        <div class="form-card">
+            <!-- 表單標題 -->
+            <div class="form-title-section">
+                <h1 class="restaurant-name" id="restaurantName">海南雞飯</h1>
+                <div class="deadline">
+                    <i class="far fa-clock"></i>
+                    <span id="cutoffTime">20:50 結單</span>
+                </div>
+            </div>
+            
+            <!-- 表單問題區 -->
+            <form id="mealOrderForm">
+                <!-- 問題1：餐點選擇 -->
+                <div class="question-block">
+                    <div class="question-header">
+                        <div class="question-title">
+                            <i class="fas fa-utensils"></i>
+                            請選擇餐點
+                        </div>
+                        <span class="required-badge">必填</span>
+                    </div>
+                    
+                    <div class="options-list" id="mealOptions">
+                        <!-- 選項由JavaScript動態生成 -->
+                    </div>
+                </div>
+                
+                <!-- 問題2：座號輸入 -->
+                <div class="question-block">
+                    <div class="question-header">
+                        <div class="question-title">
+                            <i class="fas fa-user"></i>
+                            座號
+                        </div>
+                        <span class="required-badge">必填</span>
+                    </div>
+                    
+                    <div class="text-input-group">
+                        <input 
+                            type="text" 
+                            id="seatNumber" 
+                            class="text-input" 
+                            placeholder="請輸入座號（例：15）"
+                            maxlength="5"
+                            required>
+                        <p class="input-hint">他班同學請加註班級（例：30122）</p>
+                    </div>
+                </div>
+                
+                <!-- 問題3：備註與加點 -->
+                <div class="question-block">
+                    <div class="question-header">
+                        <div class="question-title">
+                            <i class="fas fa-sticky-note"></i>
+                            備註或加點
+                        </div>
+                        <span style="color: #6b7280; font-size: 0.9rem;">選填</span>
+                    </div>
+                    
+                    <div class="text-input-group">
+                        <textarea 
+                            id="notes" 
+                            class="text-input" 
+                            rows="3"
+                            placeholder="例如：少飯、不要辣、加點飲料..."></textarea>
+                        <p class="input-hint">請簡潔說明您的特殊需求</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 底部導航（表單專用） -->
+    <div class="form-bottom-nav">
+        <a href="index.html" class="form-nav-item">
+            <i class="fas fa-home"></i>
+            首頁
+        </a>
+        <a href="order.html" class="form-nav-item active">
+            <i class="fas fa-edit"></i>
+            點餐
+        </a>
+        <a href="calendar.html" class="form-nav-item">
+            <i class="far fa-calendar"></i>
+            日曆
+        </a>
+        <a href="guide.html" class="form-nav-item">
+            <i class="fas fa-info-circle"></i>
+            指南
+        </a>
+    </div>
+    
+    <!-- 提交按鈕區 -->
+    <div class="submit-section">
+        <div class="form-message" id="formMessage"></div>
+        <button type="button" class="submit-btn" id="submitBtn">
+            <i class="fas fa-paper-plane"></i>
+            提交訂單
+        </button>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // 模擬的表單資料
+        const formData = {
+            '2024-01-15': {
+                restaurant: '海南雞飯',
+                cutoff: '20:50',
+                status: 'open',
+                options: [
+                    { id: 1, name: '海南雞飯', price: 75 },
+                    { id: 2, name: '海南燒雞飯', price: 75 },
+                    { id: 3, name: '海南雞腿飯', price: 85 }
+                ]
+            },
+            '2024-01-16': {
+                restaurant: '池上便當',
+                cutoff: '19:30',
+                status: 'open',
+                options: [
+                    { id: 4, name: '招牌排骨飯', price: 80 },
+                    { id: 5, name: '雞腿飯', price: 85 },
+                    { id: 6, name: '爌肉飯', price: 75 }
+                ]
+            },
+            '2024-01-17': {
+                restaurant: '老王牛肉麵',
+                cutoff: '18:45',
+                status: 'closed',
+                options: [
+                    { id: 7, name: '紅燒牛肉麵', price: 90 },
+                    { id: 8, name: '清燉牛肉麵', price: 90 },
+                    { id: 9, name: '牛肉湯餃', price: 85 }
+                ]
+            }
+        };
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📝 點餐表單頁面載入完成');
+            
+            // 1. 生成日期導航按鈕
+            const dateButtons = document.getElementById('dateButtons');
+            const today = new Date();
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const dateStr = date.toISOString().split('T')[0];
+                const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+                const weekday = weekdays[date.getDay()];
+                const day = date.getDate();
+                
+                const button = document.createElement('div');
+                button.className = i === 0 ? 'date-btn active' : 'date-btn';
+                button.dataset.date = dateStr;
+                button.innerHTML = `
+                    <div style="font-size: 0.9rem; margin-bottom: 4px;">${weekday}</div>
+                    <div style="font-size: 1.2rem; font-weight: 600;">${day}</div>
+                `;
+                
+                // 檢查表單是否開放
+                if (formData[dateStr] && formData[dateStr].status === 'closed') {
+                    button.classList.add('disabled');
+                }
+                
+                button.addEventListener('click', function() {
+                    if (this.classList.contains('disabled')) return;
+                    
+                    // 移除所有按鈕的active類
+                    document.querySelectorAll('.date-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // 添加active類到點擊的按鈕
+                    this.classList.add('active');
+                    
+                    // 載入對應日期的表單
+                    loadFormData(this.dataset.date);
+                });
+                
+                dateButtons.appendChild(button);
+            }
+            
+            // 2. 載入今日表單資料
+            const todayStr = today.toISOString().split('T')[0];
+            loadFormData(todayStr);
+            
+            // 3. 設定提交按鈕事件
+            document.getElementById('submitBtn').addEventListener('click', submitOrder);
+            
+            // 4. 設定輸入框即時驗證
+            document.getElementById('seatNumber').addEventListener('input', validateForm);
+        });
+        
+        // 載入表單資料函數
+        function loadFormData(date) {
+            const data = formData[date] || formData['2024-01-15']; // 預設值
+            
+            // 更新標題
+            document.getElementById('restaurantName').textContent = data.restaurant;
+            document.getElementById('cutoffTime').textContent = data.cutoff + ' 結單';
+            
+            // 更新表單狀態
+            const statusEl = document.getElementById('formStatus');
+            if (data.status === 'open') {
+                statusEl.className = 'form-status';
+                statusEl.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>此表單接受回覆中 · 今日 ${data.cutoff} 結單</span>
+                `;
+            } else {
+                statusEl.className = 'form-status closed';
+                statusEl.innerHTML = `
+                    <i class="fas fa-times-circle"></i>
+                    <span>此表單已關閉 · 不接受新回覆</span>
+                `;
+            }
+            
+            // 更新餐點選項
+            const optionsContainer = document.getElementById('mealOptions');
+            optionsContainer.innerHTML = '';
+            
+            data.options.forEach(option => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option-item';
+                optionEl.dataset.id = option.id;
+                optionEl.innerHTML = `
+                    <div class="option-content">
+                        <div class="option-name">${option.name}</div>
+                        <div class="option-price">$${option.price}</div>
+                    </div>
+                    <div class="option-selector"></div>
+                `;
+                
+                optionEl.addEventListener('click', function() {
+                    // 移除其他選項的selected類
+                    document.querySelectorAll('.option-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    
+                    // 添加selected類到點擊的選項
+                    this.classList.add('selected');
+                    validateForm();
+                });
+                
+                optionsContainer.appendChild(optionEl);
+            });
+            
+            validateForm();
+        }
+        
+        // 表單驗證函數
+        function validateForm() {
+            const selectedOption = document.querySelector('.option-item.selected');
+            const seatNumber = document.getElementById('seatNumber').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const isValid = selectedOption && seatNumber.length >= 1;
+            
+            submitBtn.disabled = !isValid;
+            return isValid;
+        }
+        
+        // 提交訂單函數
+        function submitOrder() {
+            if (!validateForm()) return;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const messageEl = document.getElementById('formMessage');
+            
+            // 防止重複提交
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+            submitBtn.classList.add('loading');
+            
+            // 收集表單資料
+            const selectedOption = document.querySelector('.option-item.selected');
+            const optionName = selectedOption.querySelector('.option-name').textContent;
+            const optionPrice = selectedOption.querySelector('.option-price').textContent;
+            const seatNumber = document.getElementById('seatNumber').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            
+            const orderData = {
+                date: document.querySelector('.date-btn.active').dataset.date,
+                restaurant: document.getElementById('restaurantName').textContent,
+                meal: `${optionName} ${optionPrice}`,
+                seat: seatNumber,
+                notes: notes || '無',
+                timestamp: new Date().toLocaleString('zh-TW')
+            };
+            
+            console.log('📦 訂單資料：', orderData);
+            
+            // 模擬API請求（之後會換成真實的Google Apps Script）
+            setTimeout(() => {
+                // 顯示成功訊息
+                messageEl.className = 'form-message success';
+                messageEl.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    訂單提交成功！訂單編號：${Math.random().toString(36).substr(2, 8).toUpperCase()}
+                `;
+                
+                // 重置按鈕狀態
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交訂單';
+                submitBtn.classList.remove('loading');
+                
+                // 3秒後清除訊息
+                setTimeout(() => {
+                    messageEl.className = 'form-message';
+                }, 3000);
+                
+                // 可選：清空表單
+                document.getElementById('seatNumber').value = '';
+                document.getElementById('notes').value = '';
+                document.querySelectorAll('.option-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+            }, 1500); // 模擬網路延遲
+        }
+    </script>
+</body>
+</html>

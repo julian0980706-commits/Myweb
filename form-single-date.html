@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>海南雞飯訂餐表單 | 2024-01-15</title>
+    
+    <!-- 樣式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 基礎重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.5;
+            padding-bottom: 100px;
+        }
+        
+        /* 頂部標題欄 */
+        .header-bar {
+            background: white;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: #475569;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        
+        .page-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        /* 固定日期顯示 */
+        .date-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            border-radius: 16px;
+            margin: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .date-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .date-main {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .date-day {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+        
+        .date-full {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        /* 表單狀態 */
+        .status-badge {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        /* 餐廳資訊 */
+        .restaurant-card {
+            background: white;
+            border-radius: 16px;
+            margin: 0 20px 20px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .restaurant-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        
+        .restaurant-meta {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+        
+        /* 餐點選擇區 */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .required-mark {
+            background: #fef2f2;
+            color: #dc2626;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        
+        /* 餐點選項 */
+        .meal-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .meal-option {
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .meal-option:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+        
+        .meal-option.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .option-info {
+            flex: 1;
+        }
+        
+        .option-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .option-price {
+            color: #059669;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .option-check {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .meal-option.selected .option-check {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .meal-option.selected .option-check::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        /* 輸入框區 */
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 1rem;
+            color: #475569;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .input-hint {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 6px;
+        }
+        
+        textarea.input-field {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* 提交按鈕區 */
+        .submit-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .submit-btn:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* 訊息提示 */
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-top: 12px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .message.success {
+            background: #dcfce7;
+            color: #166534;
+            display: block;
+        }
+        
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        
+        /* 底部導航 */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            background: white;
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+        
+        .nav-item.active {
+            color: #3b82f6;
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        /* 響應式 */
+        @media (max-width: 480px) {
+            .restaurant-card {
+                margin: 0 16px 16px;
+                padding: 20px;
+            }
+            
+            .date-card {
+                margin: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 頂部標題欄 -->
+    <div class="header-bar">
+        <a href="index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            返回首頁
+        </a>
+        <div class="page-title">訂餐表單</div>
+        <div style="width: 60px;"></div>
+    </div>
+    
+    <!-- 固定日期顯示 -->
+    <div class="date-card">
+        <div class="date-icon">
+            <i class="fas fa-calendar-day"></i>
+        </div>
+        <div class="date-main">
+            <div class="date-day">星期一</div>
+            <div class="date-full">2024年1月15日</div>
+        </div>
+        <div class="status-badge">
+            <i class="fas fa-clock"></i>
+            20:50 結單 · 接受訂購中
+        </div>
+    </div>
+    
+    <!-- 主表單區域 -->
+    <div class="restaurant-card">
+        <!-- 餐廳名稱 -->
+        <h1 class="restaurant-name">海南雞飯</h1>
+        <div class="restaurant-meta">
+            <span><i class="fas fa-store"></i> 老王餐廳</span>
+            <span><i class="fas fa-phone"></i> 0921-123456</span>
+        </div>
+        
+        <!-- 表單 -->
+        <form id="mealForm">
+            <!-- 餐點選擇 -->
+            <div class="input-group">
+                <div class="section-title">
+                    <i class="fas fa-utensils"></i>
+                    請選擇餐點
+                    <span class="required-mark">必填</span>
+                </div>
+                
+                <div class="meal-options" id="mealOptions">
+                    <!-- 選項由JavaScript生成 -->
+                </div>
+            </div>
+            
+            <!-- 座號輸入 -->
+            <div class="input-group">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    座號
+                    <span class="required-mark">必填</span>
+                </div>
+                
+                <label class="input-label">請輸入您的座號：</label>
+                <input 
+                    type="text" 
+                    id="seatNumber" 
+                    class="input-field" 
+                    placeholder="例如：15"
+                    maxlength="5"
+                    required>
+                <p class="input-hint">他班同學請加註班級（例如：301-22）</p>
+            </div>
+            
+            <!-- 備註/加點 -->
+            <div class="input-group">
+                <div class="section-title">
+                    <i class="fas fa-sticky-note"></i>
+                    備註或加點
+                    <span style="color: #64748b; font-size: 0.9rem;">選填</span>
+                </div>
+                
+                <label class="input-label">特殊需求或加點項目：</label>
+                <textarea 
+                    id="notes" 
+                    class="input-field" 
+                    placeholder="例如：少飯、不要辣、加點飲料..."></textarea>
+                <p class="input-hint">請簡潔說明您的需求</p>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 底部導航 -->
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            首頁
+        </a>
+        <a href="#" class="nav-item active">
+            <i class="fas fa-edit"></i>
+            點餐
+        </a>
+        <a href="calendar.html" class="nav-item">
+            <i class="far fa-calendar"></i>
+            日曆
+        </a>
+        <a href="guide.html" class="nav-item">
+            <i class="fas fa-info-circle"></i>
+            指南
+        </a>
+    </div>
+    
+    <!-- 提交按鈕區 -->
+    <div class="submit-area">
+        <div class="message" id="formMessage"></div>
+        <button type="button" class="submit-btn" id="submitBtn">
+            <i class="fas fa-paper-plane"></i>
+            提交訂單
+        </button>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // ============================================
+        // 表單設定 - 只需修改這裡！！！
+        // ============================================
+        const FORM_CONFIG = {
+            // 基本資訊
+            date: '2024-01-15',           // 固定日期
+            restaurant: '海南雞飯',        // 餐廳名稱
+            restaurantOwner: '老王餐廳',   // 店家名稱
+            phone: '0921-123456',         // 聯絡電話
+            cutoffTime: '20:50',          // 結單時間
+            
+            // 表單狀態
+            status: 'open',               // open = 開放, closed = 關閉
+            formId: 'hainan_chicken_001', // 唯一表單ID（英文+數字）
+            
+            // 餐點選項
+            mealOptions: [
+                { id: 1, name: '海南雞飯', price: 75 },
+                { id: 2, name: '海南燒雞飯', price: 75 },
+                { id: 3, name: '海南雞腿飯', price: 85 }
+            ],
+            
+            // 提交設定（未來連接Google Apps Script用）
+            submitUrl: '', // 留空，之後填入你的GAS網址
+            spreadsheetId: '' // 留空，之後填入你的試算表ID
+        };
+        
+        // ============================================
+        // 初始化 - 不要修改下面的程式碼
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🍱 單一日程表單已載入 - ' + FORM_CONFIG.restaurant);
+            
+            // 1. 更新頁面資訊
+            updatePageInfo();
+            
+            // 2. 生成餐點選項
+            generateMealOptions();
+            
+            // 3. 設定事件監聽器
+            setupEventListeners();
+            
+            // 4. 驗證表單狀態
+            validateFormStatus();
+        });
+        
+        // 更新頁面資訊
+        function updatePageInfo() {
+            const config = FORM_CONFIG;
+            
+            // 更新日期顯示
+            const dateObj = new Date(config.date);
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long' 
+            };
+            const dateStr = dateObj.toLocaleDateString('zh-TW', options);
+            
+            const dateParts = dateStr.split(' ');
+            document.querySelector('.date-day').textContent = dateParts[0];
+            document.querySelector('.date-full').textContent = 
+                dateParts[1] + dateParts[2] + ' ' + dateParts[3];
+            
+            // 更新餐廳名稱
+            document.querySelector('.restaurant-name').textContent = config.restaurant;
+            
+            // 更新聯絡資訊
+            document.querySelector('.restaurant-meta').innerHTML = `
+                <span><i class="fas fa-store"></i> ${config.restaurantOwner}</span>
+                <span><i class="fas fa-phone"></i> ${config.phone}</span>
+            `;
+            
+            // 更新狀態標籤
+            const statusBadge = document.querySelector('.status-badge');
+            if (config.status === 'open') {
+                statusBadge.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    ${config.cutoffTime} 結單 · 接受訂購中
+                `;
+                statusBadge.style.background = 'rgba(34, 197, 94, 0.2)';
+            } else {
+                statusBadge.innerHTML = `
+                    <i class="fas fa-times-circle"></i>
+                    已截止 · 不接受訂購
+                `;
+                statusBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+            }
+            
+            // 更新頁面標題
+            document.title = `${config.restaurant}訂餐表單 | ${config.date}`;
+        }
+        
+        // 生成餐點選項
+        function generateMealOptions() {
+            const container = document.getElementById('mealOptions');
+            container.innerHTML = '';
+            
+            FORM_CONFIG.mealOptions.forEach(option => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'meal-option';
+                optionEl.dataset.id = option.id;
+                
+                optionEl.innerHTML = `
+                    <div class="option-info">
+                        <div class="option-name">${option.name}</div>
+                        <div class="option-price">$${option.price}</div>
+                    </div>
+                    <div class="option-check"></div>
+                `;
+                
+                optionEl.addEventListener('click', function() {
+                    // 移除其他選項的選中狀態
+                    document.querySelectorAll('.meal-option').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    
+                    // 選中點擊的選項
+                    this.classList.add('selected');
+                    
+                    // 驗證表單
+                    validateForm();
+                });
+                
+                container.appendChild(optionEl);
+            });
+        }
+        
+        // 設定事件監聽器
+        function setupEventListeners() {
+            // 提交按鈕
+            document.getElementById('submitBtn').addEventListener('click', submitOrder);
+            
+            // 座號輸入即時驗證
+            document.getElementById('seatNumber').addEventListener('input', validateForm);
+            
+            // 防止表單預設提交
+            document.getElementById('mealForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        }
+        
+        // 驗證表單狀態
+        function validateFormStatus() {
+            const config = FORM_CONFIG;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (config.status === 'closed') {
+                // 表單已關閉
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-lock"></i> 表單已截止';
+                submitBtn.style.background = '#94a3b8';
+                
+                // 禁用所有輸入
+                document.getElementById('seatNumber').disabled = true;
+                document.getElementById('notes').disabled = true;
+                document.querySelectorAll('.meal-option').forEach(option => {
+                    option.style.pointerEvents = 'none';
+                    option.style.opacity = '0.6';
+                });
+            }
+        }
+        
+        // 表單驗證
+        function validateForm() {
+            if (FORM_CONFIG.status === 'closed') return false;
+            
+            const selectedOption = document.querySelector('.meal-option.selected');
+            const seatNumber = document.getElementById('seatNumber').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            
+            const isValid = selectedOption && seatNumber.length >= 1;
+            
+            submitBtn.disabled = !isValid;
+            return isValid;
+        }
+        
+        // 提交訂單
+        function submitOrder() {
+            if (!validateForm()) return;
+            if (FORM_CONFIG.status === 'closed') return;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const messageEl = document.getElementById('formMessage');
+            
+            // 防止重複提交
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+            
+            // 收集表單資料
+            const selectedOption = document.querySelector('.meal-option.selected');
+            const optionId = selectedOption.dataset.id;
+            const option = FORM_CONFIG.mealOptions.find(o => o.id == optionId);
+            
+            const orderData = {
+                formId: FORM_CONFIG.formId,
+                date: FORM_CONFIG.date,
+                restaurant: FORM_CONFIG.restaurant,
+                meal: option.name,
+                price: option.price,
+                seatNumber: document.getElementById('seatNumber').value.trim(),
+                notes: document.getElementById('notes').value.trim() || '無',
+                timestamp: new Date().toLocaleString('zh-TW'),
+                status: 'pending'
+            };
+            
+            console.log('📤 提交訂單資料：', orderData);
+            
+            // 模擬API請求（2秒）
+            setTimeout(() => {
+                // 顯示成功訊息
+                messageEl.className = 'message success';
+                messageEl.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    訂單提交成功！訂單編號：${generateOrderId()}
+                `;
+                
+                // 重置按鈕狀態
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 提交訂單';
+                
+                // 可選：清空表單
+                setTimeout(() => {
+                    document.getElementById('seatNumber').value = '';
+                    document.getElementById('notes').value = '';
+                    document.querySelectorAll('.meal-option').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    messageEl.className = 'message';
+                    validateForm();
+                }, 3000);
+                
+            }, 2000);
+        }
+        
+        // 生成訂單編號
+        function generateOrderId() {
+            const date = new Date();
+            const dateStr = date.getFullYear().toString().substr(2) + 
+                          (date.getMonth() + 1).toString().padStart(2, '0') + 
+                          date.getDate().toString().padStart(2, '0');
+            const randomStr = Math.random().toString(36).substr(2, 4).toUpperCase();
+            return dateStr + randomStr;
+        }
+    </script>
+</body>
+</html>
