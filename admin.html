@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台控制 | 班級訂餐</title>
+    
+    <style>
+        /* 基礎重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* 頂部標題 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+        
+        .title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+        
+        /* 主內容區 */
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* 返回首頁按鈕 */
+        .home-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            z-index: 100;
+            transition: all 0.3s;
+        }
+        
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* 功能卡片 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .card-title i {
+            color: #667eea;
+        }
+        
+        /* 表單開關區 */
+        .forms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .forms-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+        
+        .form-item {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 20px 15px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .form-item:hover {
+            border-color: #94a3b8;
+            background: #f1f5f9;
+        }
+        
+        .form-item.active {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .form-item.closed {
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+        
+        .form-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .form-status {
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .status-open {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-closed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* 指南編輯器 */
+        .guide-editor {
+            width: 100%;
+            min-height: 250px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            background: #f8fafc;
+            color: #1e293b;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+        
+        .guide-editor:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* 按鈕區 */
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .btn {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+        }
+        
+        /* 操作按鈕群組 */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        /* 狀態訊息 */
+        .message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.5s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        /* 手機底部操作欄 */
+        .mobile-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+            justify-content: center;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        .mobile-bar-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            max-width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-bar {
+                display: flex;
+            }
+            
+            .main-content {
+                padding-bottom: 100px;
+            }
+        }
+        
+        /* 最後更新時間 */
+        .update-time {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 返回首頁按鈕 -->
+    <a href="index.html" class="home-btn">
+        <i class="fas fa-arrow-left"></i>
+        返回首頁
+    </a>
+    
+    <!-- 頂部標題 -->
+    <div class="header">
+        <h1 class="title">📱 訂餐系統後台</h1>
+        <p class="subtitle">直接控制所有表單開關 · 手機電腦都能用</p>
+    </div>
+    
+    <!-- 主內容區 -->
+    <div class="main-content">
+        <!-- 卡片1：表單開關控制 -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-toggle-on"></i>
+                表單開關控制
+            </h2>
+            
+            <div class="forms-grid" id="formsGrid">
+                <!-- form1~form15 由JavaScript生成 -->
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn" style="background: #10b981; color: white;" id="openAllBtn">
+                    <i class="fas fa-lock-open"></i>
+                    開啟全部表單
+                </button>
+                <button class="action-btn" style="background: #ef4444; color: white;" id="closeAllBtn">
+                    <i class="fas fa-lock"></i>
+                    關閉全部表單
+                </button>
+            </div>
+        </div>
+        
+        <!-- 卡片2：指南內容編輯 -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-edit"></i>
+                指南內容編輯
+            </h2>
+            
+            <textarea class="guide-editor" id="guideEditor" placeholder="在這裡輸入指南內容...">
+# 📖 訂餐系統使用指南
+
+## 🍽️ 如何訂餐？
+1. **選擇日期**：查看日曆或近期訂餐
+2. **選擇餐點**：點選想要的餐點選項
+3. **填寫座號**：輸入你的座號（他班請加註班級）
+4. **提交訂單**：確認資訊後提交
+
+## ⏰ 重要時間提醒
+- **每日結單時間**：請參考各表單顯示時間
+- **週三注意**：部分餐廳固定公休
+- **修改訂單**：如需修改請直接聯絡班代
+
+## ❓ 常見問題
+**Q：可以訂購多份嗎？**
+A：目前系統一次只接受一份訂單。
+
+**Q：忘記訂餐怎麼辦？**
+A：請直接聯絡餐廳或詢問班代。
+
+**Q：如何知道訂單是否成功？**
+A：提交後會顯示訂單編號即為成功。
+
+## 📞 聯絡方式
+- **班代**：王小明 (0912-345-678)
+- **系統問題**：李同學 (admin@example.com)
+- **緊急聯絡**：直接撥打餐廳電話
+            </textarea>
+            
+            <div class="buttons-grid">
+                <button class="btn btn-success" id="saveGuideBtn">
+                    <i class="fas fa-save"></i>
+                    儲存指南內容
+                </button>
+                <button class="btn btn-secondary" id="resetGuideBtn">
+                    <i class="fas fa-undo"></i>
+                    恢復預設內容
+                </button>
+            </div>
+        </div>
+        
+        <!-- 卡片3：快速操作 -->
+        <div class="card">
+            <h2 class="card-title">
+                <i class="fas fa-bolt"></i>
+                快速操作
+            </h2>
+            
+            <div class="buttons-grid">
+                <button class="btn btn-primary" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i>
+                    重新整理狀態
+                </button>
+                <button class="btn btn-secondary" id="viewGuideBtn">
+                    <i class="fas fa-eye"></i>
+                    預覽指南頁面
+                </button>
+                <button class="btn btn-secondary" id="viewCalendarBtn">
+                    <i class="far fa-calendar-alt"></i>
+                    查看訂餐日曆
+                </button>
+            </div>
+            
+            <div style="margin-top: 25px; padding-top: 20px; border-top: 2px solid #f1f5f9;">
+                <h3 style="font-size: 1.1rem; color: #475569; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-mobile-alt"></i>
+                    手機使用提醒
+                </h3>
+                <p style="color: #64748b; line-height: 1.6; font-size: 0.95rem;">
+                    此後台已針對手機優化，可直接用手機瀏覽器操作。
+                    <br>建議將此頁面加入書籤，方便隨時開啟。
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 手機底部操作欄 -->
+    <div class="mobile-bar">
+        <button class="mobile-bar-btn" style="background: #10b981; color: white;" id="mobileOpenAll">
+            <i class="fas fa-lock-open"></i>
+            全開
+        </button>
+        <button class="mobile-bar-btn" style="background: #ef4444; color: white;" id="mobileCloseAll">
+            <i class="fas fa-lock"></i>
+            全關
+        </button>
+        <button class="mobile-bar-btn" style="background: #667eea; color: white;" id="mobileSave">
+            <i class="fas fa-save"></i>
+            儲存
+        </button>
+    </div>
+    
+    <!-- 狀態訊息 -->
+    <div class="message" id="message">
+        <i class="fas fa-check-circle"></i>
+        <span>操作成功！</span>
+    </div>
+    
+    <!-- 最後更新時間 -->
+    <div class="update-time">
+        最後更新：<span id="updateTime">--:--:--</span>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // ============================================
+        // 模擬資料 - form1~form15
+        // ============================================
+        //在此修改餐廳名(後台的)
+        // ============================================
+// 自動輪排系統 - 會自動避開週三不開的店
+// ============================================
+
+// 餐廳清單（15間餐廳，其中一間週三不開）
+ // ===== 後台密碼保護（放在所有代碼的最前面）=====
+    (function checkAdminAccess() {
+        const isAuthenticated = sessionStorage.getItem('admin_authenticated') === 'true';
+        const ADMIN_PASSWORD = "3840"; // 🔐 請務必改成你自己的密碼
+        
+        if (!isAuthenticated) {
+            const password = prompt('🔒 請輸入後台管理密碼：');
+            if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('admin_authenticated', 'true');
+                alert('驗證成功！');
+            } else {
+                alert('密碼錯誤，將返回首頁。');
+                window.location.href = 'index.html';
+            }
+        }
+    })();
+const RESTAURANTS = [
+    { name: '海南雞飯', closedDay: null },      // 每天都開
+    { name: '池上便當', closedDay: null },      // 每天都開
+    { name: '老王牛肉麵', closedDay: null },     // 每天都開
+    { name: '輕食沙拉坊', closedDay: null },     // 每天都開
+    { name: '美式漢堡王', closedDay: null },     // 每天都開
+    { name: '南洋咖哩屋', closedDay: null },     // 每天都開
+    { name: '日式丼飯', closedDay: null },       // 每天都開
+    { name: '港式燒臘', closedDay: 3 },         // 週三不開（0=週日,1=週一,...,6=週六）
+    { name: '義大利麵', closedDay: null },       // 每天都開
+    { name: '韓式拌飯', closedDay: null },       // 每天都開
+    { name: '素食餐廳', closedDay: null },       // 每天都開
+    { name: '滷味專賣', closedDay: null },       // 每天都開
+    { name: '炒飯炒麵', closedDay: null },       // 每天都開
+    { name: '小火鍋', closedDay: null },         // 每天都開
+    { name: '披薩店', closedDay: null }          // 每天都開
+];
+
+// 自動產生未來15天的表單安排
+function generateFormSchedule(startDate = new Date()) {
+    const schedule = [];
+    let currentDate = new Date(startDate);
+    let restaurantIndex = 0;
+    
+    for (let i = 0; i < 15; i++) {
+        const restaurant = RESTAURANTS[restaurantIndex % RESTAURANTS.length];
+        const dayOfWeek = currentDate.getDay(); // 0=週日,1=週一,...,6=週六
+        
+        // 檢查是否遇到週三不開的店
+        if (restaurant.closedDay === dayOfWeek) {
+            // 與隔天對調：跳過今天，明天再排這家店
+            schedule.push({
+                id: `form${i + 1}`,
+                name: '調整中',  // 暫時標記
+                date: new Date(currentDate),
+                restaurant: null,
+                status: 'closed'
+            });
+            
+            // 日期前進一天，但餐廳索引不變（明天再排這家）
+            currentDate.setDate(currentDate.getDate() + 1);
+            i--; // 重複這個迴圈
+            continue;
+        }
+        
+        // 正常安排
+        schedule.push({
+            id: `form${i + 1}`,
+            name: `${getWeekdayChinese(dayOfWeek)}${getMealType(i)}`, // 如：週二午餐
+            date: new Date(currentDate),
+            restaurant: restaurant.name,
+            status: 'open',
+            closedDay: restaurant.closedDay
+        });
+        
+        // 前進到下一天和下一個餐廳
+        currentDate.setDate(currentDate.getDate() + 1);
+        restaurantIndex++;
+    }
+    
+    // 處理「調整中」的項目（與隔天對調）
+    for (let i = 0; i < schedule.length; i++) {
+        if (schedule[i].name === '調整中' && i + 1 < schedule.length) {
+            // 與隔天的餐廳對調
+            const nextItem = schedule[i + 1];
+            const tempRestaurant = nextItem.restaurant;
+            
+            schedule[i].name = nextItem.name;
+            schedule[i].restaurant = tempRestaurant;
+            schedule[i].status = 'open';
+            
+            // 隔天的項目改成被對調過來的餐廳
+            const dayOfWeek = schedule[i + 1].date.getDay();
+            const mealType = getMealType(i + 1);
+            schedule[i + 1].name = `${getWeekdayChinese(dayOfWeek)}${mealType}`;
+            // restaurant保持原來的順序
+        }
+    }
+    
+    return schedule;
+}
+
+// 輔助函數：取得中文星期幾
+function getWeekdayChinese(day) {
+    const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+    return weekdays[day];
+}
+
+// 輔助函數：取得餐別（午餐/晚餐）
+function getMealType(index) {
+    return index % 2 === 0 ? '午餐' : '晚餐';
+}
+
+// 更新 FORM_LIST 為動態產生
+const TODAY = new Date();
+const FORM_LIST = generateFormSchedule(TODAY);
+        
+        // ============================================
+        // 初始化
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎮 極簡後台載入完成');
+            
+            // 1. 載入表單開關
+            loadFormSwitches();
+            
+            // 2. 載入指南內容
+            loadGuideContent();
+            
+            // 3. 設定事件監聽器
+            setupEventListeners();
+            
+            // 4. 更新時間顯示
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // 5. 顯示歡迎訊息
+            setTimeout(() => {
+                showMessage('後台載入完成！可直接控制所有表單。');
+            }, 1000);
+        });
+        
+        // ============================================
+        // 主要功能函數
+        // ============================================
+        
+        // 載入表單開關
+        function loadFormSwitches() {
+            const container = document.getElementById('formsGrid');
+            container.innerHTML = '';
+            
+            FORM_LIST.forEach(form => {
+                const formItem = document.createElement('div');
+                formItem.className = `form-item ${form.status}`;
+                formItem.dataset.id = form.id;
+                
+                formItem.innerHTML = `
+                    <div class="form-name">${form.name}</div>
+                    <div class="form-status ${form.status === 'open' ? 'status-open' : 'status-closed'}">
+                        ${form.status === 'open' ? '開放中' : '已關閉'}
+                    </div>
+                `;
+                
+                // 點擊切換狀態
+                formItem.addEventListener('click', function() {
+                    toggleFormStatus(form.id);
+                });
+                
+                container.appendChild(formItem);
+            });
+        }
+        
+        // 切換表單狀態
+        function toggleFormStatus(formId) {
+            const form = FORM_LIST.find(f => f.id === formId);
+            if (form) {
+                // 切換狀態
+                form.status = form.status === 'open' ? 'closed' : 'open';
+                
+                // 更新顯示
+                const formItem = document.querySelector(`.form-item[data-id="${formId}"]`);
+                formItem.className = `form-item ${form.status}`;
+                
+                const statusEl = formItem.querySelector('.form-status');
+                statusEl.className = `form-status ${form.status === 'open' ? 'status-open' : 'status-closed'}`;
+                statusEl.textContent = form.status === 'open' ? '開放中' : '已關閉';
+                
+                // 顯示訊息
+                showMessage(`已${form.status === 'open' ? '開啟' : '關閉'} ${form.name}`);
+                
+                // 這裡之後會連接到 Google Apps Script 實際更新狀態
+                console.log(`切換表單狀態：${formId} -> ${form.status}`);
+            }
+        }
+        
+        // 載入指南內容
+        function loadGuideContent() {
+            const savedContent = localStorage.getItem('guide_content');
+            if (savedContent) {
+                document.getElementById('guideEditor').value = savedContent;
+            }
+        }
+        
+        // 設定事件監聽器
+        function setupEventListeners() {
+            // 開啟全部表單
+            document.getElementById('openAllBtn').addEventListener('click', function() {
+                FORM_LIST.forEach(form => {
+                    form.status = 'open';
+                });
+                loadFormSwitches();
+                showMessage('✅ 已開啟全部表單');
+            });
+            
+            // 關閉全部表單
+            document.getElementById('closeAllBtn').addEventListener('click', function() {
+                FORM_LIST.forEach(form => {
+                    form.status = 'closed';
+                });
+                loadFormSwitches();
+                showMessage('✅ 已關閉全部表單');
+            });
+            
+            // 儲存指南內容
+            document.getElementById('saveGuideBtn').addEventListener('click', function() {
+                const content = document.getElementById('guideEditor').value;
+                localStorage.setItem('guide_content', content);
+                showMessage('✅ 指南內容已儲存！');
+            });
+            
+            // 恢復預設指南內容
+            document.getElementById('resetGuideBtn').addEventListener('click', function() {
+                if (confirm('確定要恢復預設指南內容嗎？')) {
+                    const defaultContent = `# 📖 訂餐系統使用指南
+
+## 🍽️ 如何訂餐？
+1. **選擇日期**：查看日曆或近期訂餐
+2. **選擇餐點**：點選想要的餐點選項
+3. **填寫座號**：輸入你的座號（他班請加註班級）
+4. **提交訂單**：確認資訊後提交
+
+## ⏰ 重要時間提醒
+- **每日結單時間**：請參考各表單顯示時間
+- **週三注意**：部分餐廳固定公休
+- **修改訂單**：如需修改請直接聯絡班代
+
+## ❓ 常見問題
+**Q：可以訂購多份嗎？**
+A：目前系統一次只接受一份訂單。
+
+**Q：忘記訂餐怎麼辦？**
+A：請直接聯絡餐廳或詢問班代。
+
+**Q：如何知道訂單是否成功？**
+A：提交後會顯示訂單編號即為成功。
+
+## 📞 聯絡方式
+- **班代**：王小明 (0912-345-678)
+- **系統問題**：李同學 (admin@example.com)
+- **緊急聯絡**：直接撥打餐廳電話`;
+                    
+                    document.getElementById('guideEditor').value = defaultContent;
+                    showMessage('✅ 已恢復預設指南內容');
+                }
+            });
+            
+            // 重新整理狀態
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                loadFormSwitches();
+                showMessage('🔄 狀態已重新整理');
+            });
+            
+            // 預覽指南頁面
+            document.getElementById('viewGuideBtn').addEventListener('click', function() {
+                window.open('guide.html', '_blank');
+            });
+            
+            // 查看訂餐日曆
+            document.getElementById('viewCalendarBtn').addEventListener('click', function() {
+                window.open('calendar-simple.html', '_blank');
+            });
+            
+            // 手機按鈕事件
+            document.getElementById('mobileOpenAll').addEventListener('click', function() {
+                document.getElementById('openAllBtn').click();
+            });
+            
+            document.getElementById('mobileCloseAll').addEventListener('click', function() {
+                document.getElementById('closeAllBtn').click();
+            });
+            
+            document.getElementById('mobileSave').addEventListener('click', function() {
+                document.getElementById('saveGuideBtn').click();
+            });
+        }
+        
+        // ============================================
+        // 工具函數
+        // ============================================
+        
+        // 顯示訊息
+        function showMessage(text) {
+            const messageEl = document.getElementById('message');
+            const icon = messageEl.querySelector('i');
+            const textEl = messageEl.querySelector('span');
+            
+            // 根據訊息類型設定圖標
+            if (text.includes('✅') || text.includes('成功') || text.includes('開啟')) {
+                icon.className = 'fas fa-check-circle';
+                messageEl.style.background = 'rgba(34, 197, 94, 0.9)';
+            } else if (text.includes('❌') || text.includes('錯誤') || text.includes('關閉')) {
+                icon.className = 'fas fa-times-circle';
+                messageEl.style.background = 'rgba(239, 68, 68, 0.9)';
+            } else {
+                icon.className = 'fas fa-info-circle';
+                messageEl.style.background = 'rgba(59, 130, 246, 0.9)';
+            }
+            
+            textEl.textContent = text.replace(/✅|❌|🔄/g, '').trim();
+            messageEl.classList.add('show');
+            
+            // 3秒後隱藏
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 更新時間顯示
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-TW');
+            document.getElementById('updateTime').textContent = timeStr;
+        }
+        
+        // 偵測是否為手機
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // 如果是手機，顯示提示
+        if (isMobile()) {
+            console.log('📱 偵測到手機裝置，啟動手機會化');
+            document.body.style.paddingBottom = '100px';
+        }
+    </script>
+    
+    <!-- Font Awesome 圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>
